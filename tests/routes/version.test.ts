@@ -17,6 +17,11 @@ describe('GET /version', () => {
     });
   });
 
+  it('responds with Cache-Control: no-store', async () => {
+    const res = await request(app).get('/version');
+    expect(res.headers['cache-control']).toBe('no-store');
+  });
+
   it('requires no authentication', async () => {
     const res = await request(app).get('/version');
     expect(res.status).not.toBe(401);

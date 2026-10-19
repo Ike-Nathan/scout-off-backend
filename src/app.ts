@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { RequestHandler } from 'express';
 import cors, { CorsOptions } from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
@@ -250,6 +250,25 @@ app.use(metricsMiddleware);
 // IP reputation layer — runs after metrics so the finish hook in
 // metricsMiddleware is registered first, keeping score increments in order.
 app.use(ipReputationMiddleware);
+
+// Operational endpoints must never be cached by a CDN or proxy, otherwise load
+// balancers and monitoring could see a stale health status during an outage.
+const noStore: RequestHandler = (_req, res, next) => {
+  res.set('Cache-Control', 'no-store');
+  next();
+};
+app.use(
+  [
+    '/health',
+    '/ready',
+    '/metrics',
+    '/version',
+    `${API_PREFIX}/health/dependencies`,
+    `${API_V1_PREFIX}/health/dependencies`,
+    `${API_V2_PREFIX}/health/dependencies`,
+  ],
+  noStore,
+);
 
 app.get('/version', (_req, res) => {
   res.json(getVersionInfo());
