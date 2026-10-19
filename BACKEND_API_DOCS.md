@@ -151,6 +151,8 @@ The backend maintains a 24-hour cache of idempotent request responses keyed by t
 
 **Transient 5xx responses are NOT cached.** If a request completes with a 5xx status, the pending claim is released immediately so the same key can be reused for a retry without waiting for the previous 24-hour TTL.
 
+**Detecting a replay.** A response served from the idempotency cache carries `Idempotent-Replayed: true`. The first execution of a request does not include the header, so clients and support staff can tell whether the action ran just now or whether an earlier result was returned. The header is listed in CORS `exposedHeaders`, so browser clients can read it.
+
 ### How to use it
 
 **Send a stable, unique key:**
